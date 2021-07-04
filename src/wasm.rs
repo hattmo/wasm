@@ -33,7 +33,7 @@ impl State {
 }
 
 trait Executable {
-    fn exec(&self, state: &mut State);
+    fn exec(&self, state: &mut State) -> Result<(), &str>;
 }
 
 pub struct WasmFunc {
@@ -84,17 +84,17 @@ impl WasmFunc {
     }
 
     pub fn cond_jump(&mut self, dst: usize) {
-        self.instructions.push(Box::new(control_flow::CondJump {
-            dst: dst,
-        }))
+        self.instructions
+            .push(Box::new(control_flow::CondJump { dst: dst }))
     }
 
-    pub fn exec(&mut self, params: &[DataTypes]) {
+    pub fn exec(&mut self, params: &[DataTypes]) -> Result<(), &str> {
         let mut state = State::new(self.local_size, params);
         let len = self.instructions.len();
         while state.ip < len {
-            (*self.instructions[state.ip]).exec(&mut state);
+            self.instructions[state.ip].exec(&mut state)?;
         }
         print!("{:?}", state);
+        Ok(())
     }
 }

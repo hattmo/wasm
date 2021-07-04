@@ -5,17 +5,19 @@ use crate::wasm::State;
 pub struct NoOp {}
 
 impl Executable for NoOp {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 
 pub struct Drop {}
 
 impl Executable for Drop {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.stack.pop();
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 
@@ -24,9 +26,10 @@ pub struct I32Const {
 }
 
 impl Executable for I32Const {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.stack.push(DataTypes::I32(self.val));
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 pub struct I64Const {
@@ -34,9 +37,10 @@ pub struct I64Const {
 }
 
 impl Executable for I64Const {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.stack.push(DataTypes::I64(self.val));
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 
@@ -45,9 +49,10 @@ pub struct F32Const {
 }
 
 impl Executable for F32Const {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.stack.push(DataTypes::F32(self.val));
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 pub struct F64Const {
@@ -55,9 +60,10 @@ pub struct F64Const {
 }
 
 impl Executable for F64Const {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.stack.push(DataTypes::F64(self.val));
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 
@@ -66,9 +72,10 @@ pub struct LocalGet {
 }
 
 impl Executable for LocalGet {
-    fn exec(&self, state: &mut State) {
+    fn exec(&self, state: &mut State) -> Result<(), &'static str>{
         state.stack.push(state.local[self.id]);
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
 
@@ -77,11 +84,10 @@ pub struct LocalSet {
 }
 
 impl Executable for LocalSet {
-    fn exec(&self, state: &mut State) {
-        match state.stack.pop() {
-            Some(v) => state.local[self.id] = v,
-            None => panic!(),
-        };
+    fn exec(&self, state: &mut State) -> Result<(), &'static str> {
+        let v = state.stack.pop().ok_or("No items on stack")?;
+        state.local[self.id] = v;
         state.ip = state.ip + 1;
+        Ok(())
     }
 }
